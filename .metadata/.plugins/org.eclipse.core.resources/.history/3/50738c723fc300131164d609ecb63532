@@ -1,0 +1,213 @@
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Scanner;
+
+
+public class main {
+	public enum MenuLevel{
+		MAIN(0), DATAAGGREGATE(1), DATASPECIFIC(2), DATAINSERT(3), DATAMODIFY(4), DATADELETE(5), 
+		CUSTOMERSEARCH(6), EMPLOYEESEARCH(7), STORESEARCH(8), INVENTORYSEARCH(9), TRANSACTIONSEARCH(10);
+		private int value;
+		private MenuLevel(int val){
+				this.value = value;
+		}
+	}
+
+	public static void main(String[] args) {
+		Scanner cfgFile = null;
+		Scanner in = new Scanner(System.in);
+		try {
+			cfgFile = new Scanner(new File("config"));
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			System.out.println("Cannot find config file");
+			e.printStackTrace();
+		}
+		String username = cfgFile.next();
+		String password = cfgFile.next();
+		cfgFile.close();
+		DBConnection con = new DBConnection("jdbc:mysql://db310.ckor58pfmu78.us-west-2.rds.amazonaws.com/electronicsdb?user="+username+"&password="+password);
+		//con.query("SELECT * FROM Customers", DBConnection.TableNames.CUSTOMERS);
+		int choice;
+		MenuLevel menu = MenuLevel.MAIN;
+		while(true){
+			//main menu options
+			System.out.println("**********Main Menu**********");
+			System.out.println("1. View Data (aggregate)");
+			System.out.println("2. View Data (specific store)");
+			System.out.println("3. Insert Data");
+			System.out.println("4. Modify Data");
+			System.out.println("5. Delete Data");
+			System.out.println("6. Exit");
+			
+			choice = in.nextInt();
+			
+			switch(choice){
+			case 1:
+				menu=MenuLevel.DATAAGGREGATE;
+				//aggregate data
+				System.out.println("**********Aggregate Data**********");
+				System.out.println("1. Search Customers");
+				System.out.println("2. Search Employees");
+				System.out.println("3. Search Stores");
+				System.out.println("4. Search Global Inventory");
+				System.out.println("5. Search Transactions");
+				System.out.println("6. Back");
+				
+				choice = in.nextInt();
+				while(menu == MenuLevel.DATAAGGREGATE){
+					switch(choice){
+					case 1:
+						menu=MenuLevel.CUSTOMERSEARCH;
+						//*********************************************customer search*****************************************************************************
+						while(menu == MenuLevel.CUSTOMERSEARCH){
+							System.out.println("**********Customer Search**********");
+							System.out.println("1. Seach by Customer ID");
+							System.out.println("2. Seach by Customer Name");
+							System.out.println("3. Search by Customer Phone Number");
+							System.out.println("4. Search by Customer Address");
+							System.out.println("5. Search by Customer Email");
+							System.out.println("6. Search by Customer Discount");
+							System.out.println("7. Back");
+							
+							choice = in.nextInt();
+							
+							switch(choice){
+							case 1:
+								System.out.println("**********Customer Search**********");
+								System.out.print("Customer ID:");
+								int customerID = in.nextInt();
+								con.query("SELECT * FROM Customers WHERE customerID = " + customerID, DBConnection.TableNames.CUSTOMERS);
+								break;
+							case 2:
+								System.out.println("**********Customer Search**********");
+								System.out.print("Customer Name:");
+								String customerName = in.nextLine();
+								con.query("SELECT * FROM Customers WHERE name = " + customerName, DBConnection.TableNames.CUSTOMERS);
+								break;
+							case 3:
+								System.out.println("**********Customer Search**********");
+								System.out.print("Customer Phone:");
+								int customerPhone = in.nextInt();
+								con.query("SELECT * FROM Customers WHERE phone = " + customerPhone, DBConnection.TableNames.CUSTOMERS);
+								break;
+							case 4:
+								System.out.println("**********Customer Search**********");
+								System.out.print("Customer Address:");
+								String customerAddr = in.nextLine();
+								con.query("SELECT * FROM Customers WHERE address = " + customerAddr, DBConnection.TableNames.CUSTOMERS);
+								break;
+							case 5:
+								System.out.println("**********Customer Search**********");
+								System.out.print("Customer Email:");
+								String customerEmail = in.nextLine();
+								con.query("SELECT * FROM Customers WHERE email = " + customerEmail, DBConnection.TableNames.CUSTOMERS);
+								break;
+							case 6:
+								System.out.println("**********Customer Search**********");
+								System.out.print("Customer Discount:");
+								int customerDiscount = in.nextInt();
+								con.query("SELECT * FROM Customers WHERE discount = " + customerDiscount, DBConnection.TableNames.CUSTOMERS);
+								break;
+							default:
+								menu=MenuLevel.DATAAGGREGATE;
+								break;
+							}
+						}
+						break;
+					case 2:
+						menu=MenuLevel.EMPLOYEESEARCH;
+						//*********************************************Employee Search************************************************************
+						while(menu==MenuLevel.EMPLOYEESEARCH){
+							System.out.println("**********Employee Search*********");
+							System.out.println("1. Search by SSN");
+							System.out.println("2. Search by Name");
+							System.out.println("3. Search by Rank");
+							System.out.println("4. Search by Wage");
+							System.out.println("5. Search by Location Number");
+							System.out.println("6. Back");
+							
+							choice = in.nextInt();
+							
+							switch(choice){
+							case 1:
+								System.out.println("**********Employee Search*********");
+								System.out.print("Employee SSN:");
+								int SSN = in.nextInt();
+								con.query("SELECT * FROM Employees WHERE SSN = " + SSN, DBConnection.TableNames.EMPLOYEES);
+								break;
+							case 2:
+								System.out.println("**********Employee Search*********");
+								System.out.print("Employee Name:");
+								break;
+							case 3:
+								System.out.println("**********Employee Search*********");
+								System.out.print("Employee Rank:");
+								break;
+							case 4:
+								System.out.println("**********Employee Search*********");
+								System.out.print("Employee Wage:");
+								break;
+							case 5:
+								System.out.println("**********Employee Search*********");
+								System.out.print("Employee Location Number");
+								break;
+							case 6:
+								menu=MenuLevel.DATAAGGREGATE;
+							}
+						}
+						break;
+					case 3:
+						menu=MenuLevel.STORESEARCH;
+						//*********************************************Store Search************************************************************
+						while(menu==MenuLevel.STORESEARCH){
+							System.out.println("**********Store Search*********");
+							System.out.println();
+						}
+						break;
+					case 4:
+						menu=MenuLevel.INVENTORYSEARCH;
+						//*********************************************Inventory Search************************************************************
+						while(menu==MenuLevel.INVENTORYSEARCH){
+							System.out.println("**********Global Inventory Search*********");
+							System.out.println();
+						}
+						break;
+					case 5:
+						menu=MenuLevel.TRANSACTIONSEARCH;
+						//*********************************************transaction Search************************************************************
+						while(menu==MenuLevel.TRANSACTIONSEARCH){	
+							System.out.println("**********Transaction Search*********");
+							System.out.println();
+						}
+						break;
+					default:
+						break;	
+					}
+					
+					break;
+				}
+			case 2:
+				//store specific data:
+				
+				break;
+			case 3:
+				//insert data
+				
+				break;
+			case 4:
+				//modify data
+				
+				break;
+			case 5:
+				//delete data
+				
+				break;
+			default:
+				return;
+			}
+		}
+	}
+
+}

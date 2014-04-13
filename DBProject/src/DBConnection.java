@@ -44,11 +44,26 @@ public class DBConnection {
 		
 	}
 	
+	public void close(){
+		try {
+			statement.close();
+			connect.close();
+			resultSet.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+	}
+	
 	public void query(String query, TableNames select){
 		try {
 			resultSet = statement.executeQuery(query);
 		} catch (SQLException e1) {
 			// TODO Auto-generated catch block
+			System.out.println(query);
+			close();
 			e1.printStackTrace();
 		}
 		try{
@@ -68,6 +83,7 @@ public class DBConnection {
 				resultTransactions(resultSet);
 			}else return;
 		}catch (Exception e){
+			close();
 			e.printStackTrace();
 		}
 		
@@ -91,7 +107,7 @@ public class DBConnection {
 	
 	private void resultCustomers(ResultSet resultSet) throws SQLException {
 	    // resultSet is initialised before the first data set
-	    System.out.println("customerID\tname\t\tphone\taddress\temail\t\tcustomerSince\t\t\tdiscount");
+	    System.out.println("customerID\tname\t\t\tphone\t\taddress\t\t\temail\t\t\t\tCustomerSince\t\t\t\tdiscount");
 		while (resultSet.next()) {
 	      // it is possible to get the columns via name
 	      // also possible to get the columns via the column number
@@ -105,9 +121,12 @@ public class DBConnection {
 	      Timestamp customerSince = resultSet.getTimestamp("customerSince");
 	      int discount = resultSet.getInt("discount");
 	      
+	      if(name.length()<10)name+="\t\t";
+	      else if(name.length()<15)name+='\t';
+	      if(address.length()<20)address+="\t";
 	      
-	      System.out.print(customerID+'\t');
-	      System.out.print(name+"\t\t");
+	      System.out.print(customerID+"\t\t");
+	      System.out.print(name+"\t");
 	      System.out.print(phone+"\t");
 	      System.out.print(address+"\t");
 	      System.out.print(email+"\t\t");
@@ -119,6 +138,7 @@ public class DBConnection {
 	
 	private void resultEmployees(ResultSet resultSet) throws SQLException {
 	    // resultSet is initialised before the first data set
+		System.out.println("employeeID\tSSN\t\tName\t\t\tRank\t\t\tWage\t\tEmployeeSince\t\t\t\tlocationNum");
 	    while (resultSet.next()) {
 	      // it is possible to get the columns via name
 	      // also possible to get the columns via the column number
@@ -132,20 +152,23 @@ public class DBConnection {
 	      Timestamp employeeSince = resultSet.getTimestamp("employeeSince");
 	      int locationNum = resultSet.getInt("locationNum");
 	      
+	      //if(name.length()<8)name+="\t\t";
+	      if(name.length()<8)name+="    ";
 	      
-	      System.out.println("employeeID: " + 		employeeID);
-	      System.out.println("ssn: " + 				ssn);
-	      System.out.println("name: " + 			name);
-	      System.out.println("rank: " + 			rank);
-	      System.out.println("wage: " + 			wage);
-	      System.out.println("employeeSince: " + 	employeeSince);
-	      System.out.println("locationNum: " + 		locationNum);
+	      System.out.print(employeeID + "\t\t");
+	      System.out.print(ssn + '\t');
+	      System.out.print(name + "\t\t");
+	      System.out.print(rank + "\t\t");
+	      System.out.print(wage + "\t\t");
+	      System.out.print(employeeSince + "\t\t\t");
+	      System.out.println(locationNum);
 
 	    }
 	  }
 	
 	private void resultHas(ResultSet resultSet) throws SQLException {
 	    // resultSet is initialised before the first data set
+		System.out.println("locationNum\titemID\tcount");
 	    while (resultSet.next()) {
 	      // it is possible to get the columns via name
 	      // also possible to get the columns via the column number
@@ -157,28 +180,29 @@ public class DBConnection {
 	      
 	      
 	      
-	      System.out.println("locationNum: " + 		locationNum);
-	      System.out.println("itemID: " + 			itemID);
-	      System.out.println("count: " + 			count);
+	      System.out.println(locationNum + '\t');
+	      System.out.println(itemID + '\t');
+	      System.out.println(count);
 	    }
 	  }
 	
 	private void resultInventory(ResultSet resultSet) throws SQLException {
 	    // resultSet is initialised before the first data set
+		System.out.println("itemID\tName\t\tType\t\tPrice");
 	    while (resultSet.next()) {
 	      // it is possible to get the columns via name
 	      // also possible to get the columns via the column number
 	      // which starts at 1
 	      // e.g., resultSet.getSTring(2);
 	      int itemID = resultSet.getInt("itemID");
-	      String name = resultSet.getString("ssn");
-	      String type = resultSet.getString("name");
-	      int price = resultSet.getInt("rank");
+	      String name = resultSet.getString("name");
+	      String type = resultSet.getString("type");
+	      int price = resultSet.getInt("price");
 	      
-	      System.out.println("itemID: " + 		itemID);
-	      System.out.println("name: " + 		name);
-	      System.out.println("type: " + 		type);
-	      System.out.println("price: " + 		price);
+	      System.out.print(itemID + "\t");
+	      System.out.print(name + '\t' );
+	      System.out.print(type + '\t' + '\t');
+	      System.out.println(price);
 
 
 	    }
@@ -186,25 +210,27 @@ public class DBConnection {
 	
 	private void resultStores(ResultSet resultSet) throws SQLException {
 	    // resultSet is initialised before the first data set
+		System.out.println("locationNum\tAddress\t\t\t\tManagerName");
 	    while (resultSet.next()) {
 	      // it is possible to get the columns via name
 	      // also possible to get the columns via the column number
 	      // which starts at 1
 	      // e.g., resultSet.getSTring(2);
-	      int locatonNum = resultSet.getInt("locatonNum");
+	      int locatonNum = resultSet.getInt("locationNum");
 	      String address = resultSet.getString("address");
 	      String managerName = resultSet.getString("managerName");
 	      
 	      
-	      System.out.println("locatonNum: " + 		locatonNum);
-	      System.out.println("address" + 			address);
-	      System.out.println("managerName: " + 		managerName);
+	      System.out.print(locatonNum + "\t\t");
+	      System.out.print(address + '\t' + '\t');
+	      System.out.println(managerName);
 
 	    }
 	  }
 	
 	private void resultTransactions(ResultSet resultSet) throws SQLException {
 	    // resultSet is initialised before the first data set
+		System.out.println("Total\t\tTimestamp\t\t\t\tCustomerID\tLocationNum");
 	    while (resultSet.next()) {
 	      // it is possible to get the columns via name
 	      // also possible to get the columns via the column number
@@ -216,30 +242,11 @@ public class DBConnection {
 	      int locationNum = resultSet.getInt("locationNum");
 	      
 	      
-	      System.out.println("total: " + 			total);
-	      System.out.println("timestamp: " + 		timestamp);
-	      System.out.println("customerID: " + 		customerID);
-	      System.out.println("locationNum: " + 		locationNum);
+	      System.out.print(total + "\t\t");
+	      System.out.print(timestamp.toString() + '\t' + '\t' + '\t');
+	      System.out.print(customerID + "\t\t");
+	      System.out.println(locationNum);
 
 	    }
 	  }
-	
-	/*private void close() {
-	    close(resultSet);
-	    close(statement);
-	    close(connect);
-	  }
-	  private void close(Closeable c) {
-	    try {
-	      if (c != null) {
-	        c.close();
-	      }
-	    } catch (Exception e) {
-	    // don't throw now as it might leave following closables in undefined state
-	    }
-	  }
-	} */
-	
-	
-	
 }
