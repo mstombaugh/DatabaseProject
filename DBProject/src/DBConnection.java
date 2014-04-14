@@ -16,7 +16,7 @@ public class DBConnection {
 	private ResultSet resultSet = null;
 	
 	public enum TableNames{
-		CONTAIN(0),CUSTOMERS(1),EMPLOYEES(2),HAS(3),INVENTORY(4),STORES(5),TRANSACTIONS(6);
+		CONTAIN(0),CUSTOMERS(1),EMPLOYEES(2),HAS(3),INVENTORY(4),STORES(5),TRANSACTIONS(6),NETWORTH(7);
 		private int value;
 		private TableNames(int val){
 				this.value = value;
@@ -52,6 +52,8 @@ public class DBConnection {
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch(Exception e2){
+			e2.printStackTrace();
 		}
 		
 		
@@ -81,13 +83,92 @@ public class DBConnection {
 				resultStores(resultSet);
 			}else if(select == TableNames.TRANSACTIONS){
 				resultTransactions(resultSet);
-			}else return;
+			}else if(select == TableNames.NETWORTH){
+				resultNetWorth(resultSet);
+			}
+			else return;
 		}catch (Exception e){
 			close();
 			e.printStackTrace();
 		}
-		
-		
+	}
+	
+	public void insert(String query, TableNames select){
+		int result=0;
+		try {
+			result = statement.executeUpdate(query);
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			System.out.println(query);
+			close();
+			e1.printStackTrace();
+		}
+		try{
+			if(select == TableNames.CONTAIN){
+				resultInsertContain(result);
+			}else if(select == TableNames.CUSTOMERS){
+				resultInsertCustomers(result);
+			}else if(select == TableNames.EMPLOYEES){
+				resultInsertEmployees(result);
+			}else if(select == TableNames.HAS){
+				resultInsertHas(result);
+			}else if(select == TableNames.INVENTORY){
+				resultInsertInventory(result);
+			}else if(select == TableNames.STORES){
+				resultInsertStores(result);
+			}else if(select == TableNames.TRANSACTIONS){
+				resultInsertTransactions(result);
+			}
+			else return;
+		}catch (Exception e){
+			close();
+			e.printStackTrace();
+		}
+	}
+	
+	public ResultSet getData(String query){
+		try {
+			return statement.executeQuery(query);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	public void delete(String query, TableNames select){
+		int result=0;
+		try {
+			String query2 = query.replace("DELETE", "SELECT *");
+			query(query2,select);
+			result = statement.executeUpdate(query);
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			System.out.println(query);
+			close();
+			e1.printStackTrace();
+		}
+		try{
+			if(select == TableNames.CONTAIN){
+				resultDeleteContain(result);
+			}else if(select == TableNames.CUSTOMERS){
+				resultDeleteCustomers(result);
+			}else if(select == TableNames.EMPLOYEES){
+				resultDeleteEmployees(result);
+			}else if(select == TableNames.HAS){
+				resultDeleteHas(result);
+			}else if(select == TableNames.INVENTORY){
+				resultDeleteInventory(result);
+			}else if(select == TableNames.STORES){
+				resultDeleteStores(result);
+			}else if(select == TableNames.TRANSACTIONS){
+				resultDeleteTransactions(result);
+			}
+			else return;
+		}catch (Exception e){
+			close();
+			e.printStackTrace();
+		}
 	}
 	
 	private void resultContain(ResultSet resultSet) throws SQLException {
@@ -168,7 +249,7 @@ public class DBConnection {
 	
 	private void resultHas(ResultSet resultSet) throws SQLException {
 	    // resultSet is initialised before the first data set
-		System.out.println("locationNum\titemID\tcount");
+		System.out.println("locationNum\titemID\t\tcount");
 	    while (resultSet.next()) {
 	      // it is possible to get the columns via name
 	      // also possible to get the columns via the column number
@@ -180,8 +261,8 @@ public class DBConnection {
 	      
 	      
 	      
-	      System.out.println(locationNum + '\t');
-	      System.out.println(itemID + '\t');
+	      System.out.print(locationNum + "\t\t");
+	      System.out.print(itemID + "\t\t");
 	      System.out.println(count);
 	    }
 	  }
@@ -230,23 +311,368 @@ public class DBConnection {
 	
 	private void resultTransactions(ResultSet resultSet) throws SQLException {
 	    // resultSet is initialised before the first data set
-		System.out.println("Total\t\tTimestamp\t\t\t\tCustomerID\tLocationNum");
+		System.out.println("transactionID\tTotal\t\tTimestamp\t\t\tCustomerID\tLocationNum");
 	    while (resultSet.next()) {
 	      // it is possible to get the columns via name
 	      // also possible to get the columns via the column number
 	      // which starts at 1
 	      // e.g., resultSet.getSTring(2);
+	      String transactionID = resultSet.getString("transactionID");
 	      double total = resultSet.getDouble("total");
 	      Timestamp timestamp = resultSet.getTimestamp("timestamp");
 	      int customerID = resultSet.getInt("customerID");
 	      int locationNum = resultSet.getInt("locationNum");
 	      
-	      
+	      System.out.print(transactionID + "\t\t");
 	      System.out.print(total + "\t\t");
-	      System.out.print(timestamp.toString() + '\t' + '\t' + '\t');
+	      System.out.print(timestamp.toString() + '\t' + '\t');
 	      System.out.print(customerID + "\t\t");
 	      System.out.println(locationNum);
 
 	    }
 	  }
+
+	private void resultNetWorth(ResultSet resultSet) throws SQLException {
+	    // resultSet is initialised before the first data set
+		System.out.println("Net Worth");
+	    while (resultSet.next()) {
+	      // it is possible to get the columns via name
+	      // also possible to get the columns via the column number
+	      // which starts at 1
+	      // e.g., resultSet.getSTring(2);
+	      //String locationNum = resultSet.getString("locationNum");
+	      double netWorth = resultSet.getDouble("inventoryWorth");
+	      
+	      //System.out.print(locationNum + "\t\t");
+	      System.out.println("$" + netWorth);
+	      
+
+	    }
+	  }
+	//INSERTIONS***********************************************************************************************************
+	private void resultInsertContain(int result) throws SQLException {
+		ResultSet resultSet = null;
+		if(result>0){
+			System.out.println("Data inserted.");
+		}
+		else System.out.println("Nothing Inserted into Table.");
+	}
+	
+	private void resultInsertCustomers(int resultSet) throws SQLException {
+	    if(resultSet>0){
+	    	query("SELECT * FROM Customers WHERE customerID = (SELECT MAX(customerID) FROM Customers)", TableNames.CUSTOMERS);
+	    }
+	}
+	
+	private void resultInsertEmployees(int resultSet) throws SQLException {
+		if(resultSet>0){
+			query("SELECT * FROM Employees WHERE employeeID = (SELECT MAX(employeeID) FROM Employees)",TableNames.EMPLOYEES);
+		}
+	}
+	
+	private void resultInsertHas(int resultSet) throws SQLException {
+		if(resultSet>0){
+			System.out.println("Inserted Data");
+		}
+	}
+	
+	private void resultInsertInventory(int resultSet) throws SQLException {
+	    if(resultSet>0){
+	    	query("SELECT * FROM Inventory WHERE itemID = (SELECT MAX(itemID) FROM Inventory)", TableNames.INVENTORY);
+	    }
+	}
+	
+	private void resultInsertStores(int resultSet) throws SQLException {
+	    if(resultSet>0){
+	    	query("SELECT * FROM Stores WHERE locationNum = (SELECT MAX(locationNum) FROM Stores)", TableNames.STORES);
+	    }
+	}
+	
+	private void resultInsertTransactions(int resultSet) throws SQLException {
+	    if(resultSet>0){
+	    	query("SELECT * FROM Transactions WHERE transactionID = (SELECT MAX(transactionID) FROM Transactions)", TableNames.TRANSACTIONS);
+	    }
+	}
+	
+	//MODIFICATIONS***************************************************************************************************************************
+	private void resultModifyContain(int resultSet) throws SQLException {
+		if(resultSet>0){
+			System.out.println(resultSet + " rows deleted");
+		}
+		else System.out.println("Nothing Deleted in Table.");
+	}
+	
+	public void modifyCustomers(String customerID,String name, String phone, String address, String email, String discount) throws SQLException {
+		ResultSet result = getData("SELECT * FROM Customers WHERE customerID = '" + customerID + '\'');
+		
+		
+		String newName, newPhone, newAddr, newEmail, newDisc;
+		newName = newPhone = newAddr = newEmail = newDisc = null;
+		
+		result.next();
+		try{
+			newName = result.getString("name");
+			newPhone = result.getString("phone");
+			newAddr = result.getString("address");
+			newEmail = result.getString("email");
+			newDisc = result.getString("discount");
+			
+			if(name!=null){
+				newName = name;
+			}
+			
+			
+			if(phone!=null){
+				newPhone = phone;
+			}
+			
+			
+			if(address!=null){
+				newAddr = address;
+			}
+			
+			
+			if(email!=null){
+				newEmail =email;
+			}
+			
+			
+			if(discount!=null){
+				newDisc = discount;
+			}
+			
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		System.out.println("customerID\tname\t\t\tphone\t\taddress\t\t\temail\t\t\t\tCustomerSince\t\t\t\tdiscount");
+		try {
+			//updated data
+			System.out.print(customerID+"\t\t");
+		    System.out.print(newName+"\t");
+		    System.out.print(newPhone+"\t");
+		    System.out.print(newAddr+"\t");
+		    System.out.print(newEmail+"\t\t");
+			System.out.print(result.getTimestamp("customerSince").toString()+"\t\t\t");
+		    System.out.println(newDisc);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		int res = statement.executeUpdate("UPDATE Customers SET name = '" + newName+"', phone = '"+newPhone+"', address = '"+newAddr+"', email = '"+newEmail+"', discount = '"+newDisc+"' WHERE customerID = " + customerID);
+		if(res>0)System.out.println(res + " Rows Changed");
+		else System.out.println("No rows changed");
+	}
+	
+	public void modifyEmployees(String employeeID,String ssn, String name, String rank, String wage, String locationNum) throws SQLException {
+		ResultSet result = getData("SELECT * FROM Employees WHERE employeeID = '" + employeeID + '\'');
+		
+		
+		String newSSN, newName, newRank, newWage, newLoc;
+		newSSN = newName = newRank = newWage = newLoc = null;
+		
+		result.next();
+		try{
+			newSSN = result.getString("ssn");
+			newName = result.getString("name");
+			newRank = result.getString("rank");
+			newWage = result.getString("wage");
+			newLoc = result.getString("locationNum");
+			
+			if(ssn!=null){
+				newSSN = ssn;
+			}
+	
+			if(name!=null){
+				newName = name;
+			}
+	
+			if(rank!=null){
+				newRank = rank;
+			}
+	
+			if(wage!=null){
+				newWage =wage;
+			}
+	
+			if(locationNum!=null){
+				newLoc = locationNum;
+			}
+			
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		System.out.println("employeeID\tSSN\t\tName\t\t\tRank\t\t\tWage\t\tEmployeeSince\t\t\t\tlocationNum");
+		try {
+			if(newName.length()<8)newName+="    ";
+			//updated data
+			System.out.print(employeeID+"\t\t");
+		    System.out.print(newSSN+"\t");
+		    System.out.print(newName+"\t\t");
+		    System.out.print(newRank+"\t\t");
+		    System.out.print(newWage+"\t\t");
+			System.out.print(result.getTimestamp("employeeSince").toString()+"\t\t\t");
+		    System.out.println(newLoc);  
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		int res = statement.executeUpdate("UPDATE Employees SET ssn = '" + newSSN+"', name = '"+newName+"', rank = '"+newRank+"', wage = '"+newWage+"', locationNum = '"+newLoc+"' WHERE employeeID = " + employeeID);
+		if(res>0)System.out.println(res + " Rows Changed");
+		else System.out.println("No rows changed");
+	}
+	
+	public void modifyInventory(String itemID,String name, String type, String price) throws SQLException {
+		ResultSet result = getData("SELECT * FROM Inventory WHERE itemID = '" + itemID + '\'');
+		
+		String newItemName, newType, newPrice;
+		newItemName = newType = newPrice = null;
+		
+		result.next();
+		try{
+			newItemName = result.getString("name");
+			newType = result.getString("type");
+			newPrice=result.getString("price");
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		
+		if(name != null){
+			newItemName = name;
+		}
+		if(type!=null){
+			newType = type;
+		}
+		if(price!=null){
+			newPrice=price;
+		}
+		System.out.println("itemID\tName\t\tType\t\tPrice");
+		System.out.print(itemID + "\t");
+	    System.out.print(newItemName + '\t' );
+	    System.out.print(newType + '\t' + '\t');
+	    System.out.println(newPrice);
+	    
+	    int res = statement.executeUpdate("UPDATE Inventory SET name = '" + newItemName+"', type = '"+newType+"', price = '"+newPrice + "' WHERE itemID = " + itemID);
+		if(res>0)System.out.println(res + " Rows Changed");
+		else System.out.println("No rows changed");
+		
+	}
+	
+	public void modifyStore(String locationNum ,String address, String manager) throws SQLException {
+		ResultSet result = getData("SELECT * FROM Stores WHERE locationNum = '" + locationNum + '\'');
+		
+		String newAddress, newManager;
+		newAddress = newManager = null;
+		
+		result.next();
+		try{
+			newAddress = result.getString("address");
+			newManager = result.getString("managerName");
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		
+		if(address != null){
+			newAddress = address;
+		}
+		if(manager!=null){
+			newManager = manager;
+		}
+		System.out.println("locationNum\tAddress\t\t\t\tManagerName");
+		System.out.print(locationNum + "\t\t");
+	    System.out.print(newAddress + '\t'+ '\t' );
+	    System.out.println(newManager);
+	    
+	    int res = statement.executeUpdate("UPDATE Stores SET address = '" + newAddress+"', managerName = '"+ newManager + "' WHERE locationNum = " + locationNum);
+		if(res>0)System.out.println(res + " Rows Changed");
+		else System.out.println("No rows changed");
+		
+	}
+	
+	public void modifyTransaction(String transactionID,String total, String customerID, String locationNum) throws SQLException {
+		ResultSet result = getData("SELECT * FROM Transactions WHERE transactionID = '" + transactionID + '\'');
+		
+		String newTotal, newCustomer, newLocation;
+		newTotal = newCustomer = newLocation = null;
+		Timestamp t = null;
+		
+		result.next();
+		try{
+			newTotal = result.getString("total");
+			newCustomer = result.getString("customerID");
+			newLocation=result.getString("locationNum");
+			t=result.getTimestamp("timestamp");
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		
+		if(total != null){
+			newTotal = total;
+		}
+		if(customerID!=null){
+			newCustomer = customerID;
+		}
+		if(locationNum!=null){
+			newLocation = locationNum;
+		}
+		System.out.println("transactionID\tTotal\t\tTimestamp\t\t\tCustomerID\tLocationNum");
+		System.out.print(transactionID + "\t\t");
+	    System.out.print(newTotal + "\t\t");
+	    System.out.print(t.toString() + '\t' + '\t');
+	    System.out.print(newCustomer + "\t\t");
+	    System.out.println(newLocation);
+	    
+	    int res = statement.executeUpdate("UPDATE Transactions SET total = '" + newTotal+"', customerID = '"+newCustomer+"', locationNum = '"+newLocation + "' WHERE transactionID = " + transactionID);
+		if(res>0)System.out.println(res + " Rows Changed");
+		else System.out.println("No rows changed");
+		
+	}
+	//DELETIONS***************************************************************************************************************************
+	private void resultDeleteContain(int resultSet) throws SQLException {
+		if(resultSet>0){
+			System.out.println(resultSet + " rows deleted");
+		}
+		else System.out.println("Nothing Deleted in Table.");
+	}
+	
+	private void resultDeleteCustomers(int resultSet) throws SQLException {
+		if(resultSet>0){
+			System.out.println(resultSet + " rows deleted");
+		}
+		else System.out.println("Nothing Deleted in Table.");
+	}
+	
+	private void resultDeleteEmployees(int resultSet) throws SQLException {
+		if(resultSet>0){
+			System.out.println(resultSet + " rows deleted");
+		}
+		else System.out.println("Nothing Deleted in Table.");
+	}
+	
+	private void resultDeleteHas(int resultSet) throws SQLException {
+		if(resultSet>0){
+			System.out.println(resultSet + " rows deleted");
+		}
+		else System.out.println("Nothing Deleted in Table.");
+	}
+	
+	private void resultDeleteInventory(int resultSet) throws SQLException {
+		if(resultSet>0){
+			System.out.println(resultSet + " rows deleted");
+		}
+		else System.out.println("Nothing Deleted in Table.");
+	}
+	
+	private void resultDeleteStores(int resultSet) throws SQLException {
+		if(resultSet>0){
+			System.out.println(resultSet + " rows deleted");
+		}
+		else System.out.println("Nothing Deleted in Table.");
+	}
+	
+	private void resultDeleteTransactions(int resultSet) throws SQLException {
+		if(resultSet>0){
+			System.out.println(resultSet + " rows deleted");
+		}
+		else System.out.println("Nothing Deleted in Table.");
+	}
 }
