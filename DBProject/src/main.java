@@ -4,13 +4,16 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 
 public class main {
 	public enum MenuLevel{
 		MAIN(0), DATAAGGREGATE(1), DATASPECIFIC(2), DATAINSERT(3), DATAMODIFY(4), DATADELETE(5), 
-		CUSTOMERSEARCH(6), EMPLOYEESEARCH(7), STORESEARCH(8), INVENTORYSEARCH(9), TRANSACTIONSEARCH(10);
+		CUSTOMERSEARCH(6), EMPLOYEESEARCH(7), STORESEARCH(8), INVENTORYSEARCH(9), TRANSACTIONSEARCH(10),
+		NORMALOPERATIONS(11);
 		private int value;
 		private MenuLevel(int val){
 				this.value = value;
@@ -41,7 +44,7 @@ public class main {
 			System.out.println("3. Insert Data");
 			System.out.println("4. Modify Data");
 			System.out.println("5. Delete Data");
-			System.out.println("6. Special Queries");
+			System.out.println("6. Store Operations");
 			System.out.println("7. Exit");
 			
 			choice = in.nextInt();
@@ -950,10 +953,119 @@ public class main {
 				
 				break;
 			case 6:
-				System.out.println("**********Special Queries**********");
-				System.out.println("1. Find all employees above a certain wage");
-				System.out.println("2. Find all customers with the maximum or minimum discounts");
-				System.out.println("");
+				menu=MenuLevel.NORMALOPERATIONS;
+				int location = 0;
+				while(menu==MenuLevel.NORMALOPERATIONS){
+					if(location == 0){
+						System.out.println("**********Normal Operations**********");
+						System.out.print("Enter Store Location Number");
+						location = in.nextInt();
+						in.nextLine();
+					}
+					
+					System.out.println("**********Normal Operations: Location " + location + "**********");
+					System.out.println("1. Store Information");
+					System.out.println("2. New Employee");
+					System.out.println("3. New Inventory");
+					System.out.println("4. New Transaction");
+					System.out.println("5. Back");
+					
+					choice = in.nextInt();
+					in.nextLine();
+					
+					switch(choice){
+					case 1://Store info
+						System.out.println("**********Store Information**********");
+						con.query("SELECT * FROM Stores WHERE locationNum = " + location, DBConnection.TableNames.STORES);
+						System.out.println("1. View Employees");
+						System.out.println("2. View Inventory");
+						System.out.println("3. View Transactions");
+						System.out.println("4. Back");
+						
+						choice = in.nextInt();
+						in.nextLine();
+						
+						switch(choice){
+						case 1:
+							con.query("SELECT * FROM Employees WHERE locationNum = " + location, DBConnection.TableNames.EMPLOYEES);
+							break;
+						case 2:
+							con.query("SELECT * FROM Has WHERE locationNum = " + location, DBConnection.TableNames.HAS);
+							break;
+						case 3:
+							con.query("SELECT * FROM Transactions WHERE locationNum = " + location, DBConnection.TableNames.TRANSACTIONS);
+							break;
+						case 4:
+						default:
+							break;
+						}
+						
+						break;
+					case 2://create new employee
+						System.out.println("**********Create New Employee**********");
+						System.out.print("Employee SSN:");
+						String SSN = in.nextLine();
+						System.out.print("\nEmployee Name:");
+						String name = in.nextLine();
+						System.out.print("\nEmployee Rank:");
+						String rank = in.nextLine();
+						System.out.print("\nEmployee Wage:");
+						String wage = in.nextLine();
+						con.insert("INSERT INTO Employees(ssn,  name, rank, wage, locationNum) VALUES (\'" + SSN + "\',\'" + name + "\',\'" + rank + "\',\'" + wage  + "\',\'" + location + "\')", DBConnection.TableNames.EMPLOYEES);
+						break;
+					case 3://new inventory item
+						System.out.println("**********Add Inventory Item**********");
+						System.out.print("Item ID (0 if Item does not exist):");
+						String itemID = in.nextLine();
+						if(itemID.equalsIgnoreCase("0")){
+							System.out.print("\nItem Name:");
+							name = in.nextLine();
+							System.out.print("\nItem Type:");
+							String type = in.nextLine();
+							System.out.print("\nItem Price:");
+							String price = in.nextLine();
+							
+							con.insert("INSERT INTO Inventory(name,  type, price) VALUES(\'" + name + "\',\'" + type + "\',\'" + price + "\')", DBConnection.TableNames.INVENTORY);
+							itemID = con.getLastID(DBConnection.TableNames.INVENTORY);
+							
+						}
+						System.out.print("\nNumber of Items:");
+						String count = in.nextLine();
+						System.out.println();
+						con.insert("INSERT INTO Has(locationNum,  itemID, count) VALUES(\'" + location + "\',\'" + itemID + "\',\'" + count + "\')",DBConnection.TableNames.HAS);
+						break;
+					case 4://new transaction
+						System.out.println("**********New Transaction**********");
+						System.out.print("Customer ID:");
+						String customerID = in.nextLine();
+						List<String> itemIDs = new ArrayList<String>();
+						boolean more = true;
+						int total=0;
+						while(more){
+							System.out.print("\nItem ID (0 to stop): ");
+							itemID = in.nextLine();
+							if(itemID.equalsIgnoreCase("0")){
+								more = false;
+							}
+							else{
+								itemIDs.add(itemID);
+								total += con.getPrice(itemID);
+							}
+						}
+						
+						con.insert("INSERT INTO Transactions(total, customerID, locationNum) VALUES(\'" + total + "\',\'" + customerID + "\',\'" + location + "\')", DBConnection.TableNames.TRANSACTIONS);
+						String transID = con.getLastID(DBConnection.TableNames.TRANSACTIONS);
+						for(int i=0; i<itemIDs.size(); i++){
+							con.insert("INSERT INTO Contain(transactionID, itemID) VALUES(\'" + transID + "\',\'" + itemIDs.get(i) + "\')", DBConnection.TableNames.CONTAIN);
+						}
+						con.query("SELECT * FROM Transactions WHERE transactionID = " + transID, DBConnection.TableNames.TRANSACTIONS);
+						break;
+					default:
+						menu=MenuLevel.MAIN;
+						break;
+					}
+				}
+				break;
 			case 7:
 				con.close();
 				return;

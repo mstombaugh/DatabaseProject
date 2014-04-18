@@ -6,7 +6,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class DBConnection {
 	
@@ -127,13 +129,70 @@ public class DBConnection {
 	}
 	
 	public ResultSet getData(String query){
-		try {
-			return statement.executeQuery(query);
-		} catch (SQLException e) {
+		try{
+			resultSet = statement.executeQuery(query);
+			return resultSet;
+		}catch (SQLException e1) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return null;
+			close();
+			e1.printStackTrace();
+	    }
+		return null;
+	}
+	
+	public int getPrice(String itemID){
+		try{
+			resultSet = statement.executeQuery("SELECT price FROM Inventory WHERE itemID = " + itemID);
+			resultSet.next();
+			return resultSet.getInt("price");
+		}catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			System.out.println("SELECT price FROM Inventory WHERE itemID = " + itemID);
+			close();
+			e1.printStackTrace();
+	    }
+		return 0;
+	}
+	
+	public String getLastID(TableNames t){
+		String ret = null;
+		try{
+			switch(t){
+			case CUSTOMERS:
+				resultSet = statement.executeQuery("SELECT MAX(customerID) AS cid FROM Customers");
+				resultSet.next();
+				return resultSet.getString("cid");
+				
+			case EMPLOYEES:
+				resultSet = statement.executeQuery("SELECT MAX(EmployeeID) AS eid FROM Employees");
+				resultSet.next();
+				return resultSet.getString("eid");
+				
+			case INVENTORY:
+				resultSet = statement.executeQuery("SELECT MAX(itemID) AS iid FROM Inventory");
+				resultSet.next();
+				return resultSet.getString("iid");
+				
+			case STORES:
+				resultSet = statement.executeQuery("SELECT MAX(locationNum) AS sid FROM Stores");
+				resultSet.next();
+				return resultSet.getString("sid");
+				
+			case TRANSACTIONS:
+				resultSet = statement.executeQuery("SELECT MAX(transactionID) AS tid FROM Transactions");
+				resultSet.next();
+				return resultSet.getString("tid");
+				
+			default: return null;
+			}
+				
 		}
+	    catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			close();
+			e1.printStackTrace();
+	    }
+		return null;
 	}
 	
 	public void delete(String query, TableNames select){
@@ -173,16 +232,17 @@ public class DBConnection {
 	
 	private void resultContain(ResultSet resultSet) throws SQLException {
 	    // resultSet is initialised before the first data set
+		//System.out.println("Transaction ID\t\tItem ID");
+		List<String> itemID = new ArrayList<String>();
 	    while (resultSet.next()) {
 	      // it is possible to get the columns via name
 	      // also possible to get the columns via the column number
 	      // which starts at 1
 	      // e.g., resultSet.getSTring(2);
-	      String transactionID = resultSet.getString("transactionID");
-	      String itemID = resultSet.getString("itemID");
-	      
-	      System.out.println("transactionID: " + 	transactionID);
-	      System.out.println("itemID: " + 			itemID);
+	      itemID.add(resultSet.getString("itemID"));
+	    }
+	    for(int i=0;i<itemID.size(); i++){
+	    	query("SELECT * FROM Inventory WHERE itemID = " + itemID.get(i),TableNames.INVENTORY);
 	    }
 	  }
 	
@@ -282,7 +342,7 @@ public class DBConnection {
 	      
 	      System.out.print(itemID + "\t");
 	      System.out.print(name + '\t' );
-	      System.out.print(type + '\t' + '\t');
+	      System.out.print(type + '\t');
 	      System.out.println(price);
 
 
@@ -311,24 +371,33 @@ public class DBConnection {
 	
 	private void resultTransactions(ResultSet resultSet) throws SQLException {
 	    // resultSet is initialised before the first data set
-		System.out.println("transactionID\tTotal\t\tTimestamp\t\t\tCustomerID\tLocationNum");
+		//System.out.println("transactionID\tTotal\t\tTimestamp\t\t\tCustomerID\tLocationNum");
+		List<String> transactionID = new ArrayList<String>();
+		List<String> total = new ArrayList<String>();
+		List<Timestamp> timestamp = new ArrayList<Timestamp>();
+		List<String> customerID = new ArrayList<String>();
+		List<String> locationNum = new ArrayList<String>();
 	    while (resultSet.next()) {
 	      // it is possible to get the columns via name
 	      // also possible to get the columns via the column number
 	      // which starts at 1
 	      // e.g., resultSet.getSTring(2);
-	      String transactionID = resultSet.getString("transactionID");
-	      double total = resultSet.getDouble("total");
-	      Timestamp timestamp = resultSet.getTimestamp("timestamp");
-	      int customerID = resultSet.getInt("customerID");
-	      int locationNum = resultSet.getInt("locationNum");
-	      
-	      System.out.print(transactionID + "\t\t");
-	      System.out.print(total + "\t\t");
-	      System.out.print(timestamp.toString() + '\t' + '\t');
-	      System.out.print(customerID + "\t\t");
-	      System.out.println(locationNum);
+	      transactionID.add( resultSet.getString("transactionID"));
+	      total.add(resultSet.getString("total"));
+	      timestamp.add( resultSet.getTimestamp("timestamp"));
+	      customerID.add( resultSet.getString("customerID"));
+	      locationNum.add(resultSet.getString("locationNum"));
 
+	    }
+	    for(int i=0; i<transactionID.size(); i++){
+	      System.out.println("transactionID\tTotal\t\tTimestamp\t\t\tCustomerID\tLocationNum");
+	      System.out.print(transactionID.get(i) + "\t\t");
+	      System.out.print(total.get(i) + "\t\t");
+	      System.out.print(timestamp.get(i).toString() + '\t' + '\t');
+	      System.out.print(customerID.get(i) + "\t\t");
+	      System.out.println(locationNum.get(i));
+	      System.out.println("*****Contents*****");
+	      query("SELECT * FROM Contain WHERE transactionID = " + transactionID.get(i), TableNames.CONTAIN);
 	    }
 	  }
 
