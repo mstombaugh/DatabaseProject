@@ -1,33 +1,43 @@
-import java.io.Closeable;
+/**
+ *  File: DBConnection.java
+ *  @author: Michael Stombaugh
+ *  Date: 04-20-2014
+ *  
+ *  Description:  Handles all interactions between the program and the SQL database.
+ *  Formats all query data in a readable form and outputs to System.out
+ */
+
+
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class DBConnection {
 	
 	private Connection connect = null;
 	private Statement statement = null;
-	private PreparedStatement preparedStatement = null;
 	private ResultSet resultSet = null;
 	
+	/**
+	 * Enum TableNames
+	 * Desc: Used to specify which table a query/insertion/deletion is targeting so the program can properly output the query results
+	 */
 	public enum TableNames{
 		CONTAIN(0),CUSTOMERS(1),EMPLOYEES(2),HAS(3),INVENTORY(4),STORES(5),TRANSACTIONS(6),NETWORTH(7);
-		private int value;
 		private TableNames(int val){
-				this.value = value;
 		}
 		
 	}
 
 	
-	
+	/**
+	 * @param connectionInfo	The URL of the SQL database, including the username and password
+	 */
 	public DBConnection(String connectonInfo){
 		//connect to DB
 		try {
@@ -46,6 +56,9 @@ public class DBConnection {
 		
 	}
 	
+	/**
+	 *  Closes all connections.  Helps prevent the SQL database from getting mad about too many connections
+	 */
 	public void close(){
 		try {
 			statement.close();
@@ -61,6 +74,12 @@ public class DBConnection {
 		
 	}
 	
+	/**
+	 * Outputs a formatted table of the query.
+	 * 
+	 * @param query  	The full SQL query (include SELECT _ FROM _ WHERE _ ...)
+	 * @param select 	The name of the table, comes from the enum DBConnection.TableNames
+	 */
 	public void query(String query, TableNames select){
 		try {
 			resultSet = statement.executeQuery(query);
@@ -95,6 +114,12 @@ public class DBConnection {
 		}
 	}
 	
+	/**
+	 * Outputs a formatted table of the query.
+	 * 
+	 * @param query  	The full SQL query (include INSERT INTO [tablename] VALUES(...))
+	 * @param select 	The name of the table, comes from the enum DBConnection.TableNames
+	 */
 	public void insert(String query, TableNames select){
 		int result=0;
 		try {
@@ -128,6 +153,12 @@ public class DBConnection {
 		}
 	}
 	
+	/**
+	 * Returns the ResultSet of a given query.
+	 * 
+	 * @param query 	The query being sent to the database
+	 * @return			The ResultSet returned by the query
+	 */
 	public ResultSet getData(String query){
 		try{
 			resultSet = statement.executeQuery(query);
@@ -140,6 +171,12 @@ public class DBConnection {
 		return null;
 	}
 	
+	/**
+	 * Special helper for a specific query to help with transaction calculations
+	 * 
+	 * @param itemID	The itemID of the item you need the price for
+	 * @return 			The price of the item with the specified itemID
+	 */
 	public int getPrice(String itemID){
 		try{
 			resultSet = statement.executeQuery("SELECT price FROM Inventory WHERE itemID = " + itemID);
@@ -154,8 +191,15 @@ public class DBConnection {
 		return 0;
 	}
 	
+	/**
+	 * Returns the last inserted ID in a given table
+	 * <p>
+	 * Note: for tables with no table-specific ID (Like Has or Contains), nothing is returned
+	 * 
+	 * @param t	A TableNames object specifying the table to get the last inserted ID from
+	 * @return	The last inserted ID in the given table.  Returns null for tables that have no table-specific ID
+	 */
 	public String getLastID(TableNames t){
-		String ret = null;
 		try{
 			switch(t){
 			case CUSTOMERS:
@@ -195,6 +239,12 @@ public class DBConnection {
 		return null;
 	}
 	
+	/**
+	 * Delete a tuple from a given table.  Will output all tuples affected before removing them from the table.
+	 * 
+	 * @param query		The full SQL query (DELETE FROM [tablename] WHERE [expression])
+	 * @param select	The TableNames object of the specified table
+	 */
 	public void delete(String query, TableNames select){
 		int result=0;
 		try {
@@ -230,6 +280,12 @@ public class DBConnection {
 		}
 	}
 	
+	/**
+	 * Internal function to print the result of a query on the table Contain
+	 * 
+	 * @param resultSet a ResultSet object returned from a query
+	 * @throws SQLException If the TableNames given in the query function points to the wrong table
+	 */
 	private void resultContain(ResultSet resultSet) throws SQLException {
 	    // resultSet is initialised before the first data set
 		//System.out.println("Transaction ID\t\tItem ID");
@@ -246,6 +302,12 @@ public class DBConnection {
 	    }
 	  }
 	
+	/**
+	 * Internal function to print the result of a query on the table Customers
+	 * 
+	 * @param resultSet a ResultSet object returned from a query
+	 * @throws SQLException If the TableNames given in the query function points to the wrong table
+	 */
 	private void resultCustomers(ResultSet resultSet) throws SQLException {
 	    // resultSet is initialised before the first data set
 	    System.out.println("customerID\tname\t\t\tphone\t\taddress\t\t\temail\t\t\t\tCustomerSince\t\t\t\tdiscount");
@@ -277,6 +339,12 @@ public class DBConnection {
 	    }
 	  }
 	
+	/**
+	 * Internal function to print the result of a query on the table Employees
+	 * 
+	 * @param resultSet a ResultSet object returned from a query
+	 * @throws SQLException If the TableNames given in the query function points to the wrong table
+	 */
 	private void resultEmployees(ResultSet resultSet) throws SQLException {
 	    // resultSet is initialised before the first data set
 		System.out.println("employeeID\tSSN\t\tName\t\t\tRank\t\t\tWage\t\tEmployeeSince\t\t\t\tlocationNum");
@@ -307,6 +375,12 @@ public class DBConnection {
 	    }
 	  }
 	
+	/**
+	 * Internal function to print the result of a query on the table Has
+	 * 
+	 * @param resultSet a ResultSet object returned from a query
+	 * @throws SQLException If the TableNames given in the query function points to the wrong table
+	 */
 	private void resultHas(ResultSet resultSet) throws SQLException {
 	    // resultSet is initialised before the first data set
 		System.out.println("locationNum\titemID\t\tcount");
@@ -327,6 +401,12 @@ public class DBConnection {
 	    }
 	  }
 	
+	/**
+	 * Internal function to print the result of a query on the table Inventory
+	 * 
+	 * @param resultSet a ResultSet object returned from a query
+	 * @throws SQLException If the TableNames given in the query function points to the wrong table
+	 */
 	private void resultInventory(ResultSet resultSet) throws SQLException {
 	    // resultSet is initialised before the first data set
 		System.out.println("itemID\tName\t\tType\t\tPrice");
@@ -349,6 +429,12 @@ public class DBConnection {
 	    }
 	  }
 	
+	/**
+	 * Internal function to print the result of a query on the table Stores
+	 * 
+	 * @param resultSet a ResultSet object returned from a query
+	 * @throws SQLException If the TableNames given in the query function points to the wrong table
+	 */
 	private void resultStores(ResultSet resultSet) throws SQLException {
 	    // resultSet is initialised before the first data set
 		System.out.println("locationNum\tAddress\t\t\t\tManagerName");
@@ -369,6 +455,12 @@ public class DBConnection {
 	    }
 	  }
 	
+	/**
+	 * Internal function to print the result of a query on the table Transaction
+	 * 
+	 * @param resultSet a ResultSet object returned from a query
+	 * @throws SQLException If the TableNames given in the query function points to the wrong table
+	 */
 	private void resultTransactions(ResultSet resultSet) throws SQLException {
 	    // resultSet is initialised before the first data set
 		//System.out.println("transactionID\tTotal\t\tTimestamp\t\t\tCustomerID\tLocationNum");
@@ -401,6 +493,12 @@ public class DBConnection {
 	    }
 	  }
 
+	/**
+	 * Special helper function to print the net worth of a store.
+	 * 
+	 * @param resultSet	The ResultSet from the query to get the net worth from a given store locationNum
+	 * @throws SQLException	If this function is called with anything other than the resultSet from a very specific query
+	 */
 	private void resultNetWorth(ResultSet resultSet) throws SQLException {
 	    // resultSet is initialised before the first data set
 		System.out.println("Net Worth");
@@ -418,59 +516,109 @@ public class DBConnection {
 
 	    }
 	  }
-	//INSERTIONS***********************************************************************************************************
+	
+	
+	//Begin INSERTIONS***********************************************************************************************************
+	
+	/**
+	 * Internal function to print the result of an Insertion on the table Contain
+	 * 
+	 * @param resultSet a ResultSet object returned from a query
+	 * @throws SQLException If the TableNames given in the query function points to the wrong table
+	 */
 	private void resultInsertContain(int result) throws SQLException {
-		ResultSet resultSet = null;
 		if(result>0){
 			System.out.println("Data inserted.");
 		}
 		else System.out.println("Nothing Inserted into Table.");
 	}
 	
+	/**
+	 * Internal function to print the result of an Insertion on the table Customers
+	 * 
+	 * @param resultSet a ResultSet object returned from a query
+	 * @throws SQLException If the TableNames given in the query function points to the wrong table
+	 */
 	private void resultInsertCustomers(int resultSet) throws SQLException {
 	    if(resultSet>0){
 	    	query("SELECT * FROM Customers WHERE customerID = (SELECT MAX(customerID) FROM Customers)", TableNames.CUSTOMERS);
 	    }
 	}
 	
+	/**
+	 * Internal function to print the result of an Insertion on the table Employees
+	 * 
+	 * @param resultSet a ResultSet object returned from a query
+	 * @throws SQLException If the TableNames given in the query function points to the wrong table
+	 */
 	private void resultInsertEmployees(int resultSet) throws SQLException {
 		if(resultSet>0){
 			query("SELECT * FROM Employees WHERE employeeID = (SELECT MAX(employeeID) FROM Employees)",TableNames.EMPLOYEES);
 		}
 	}
 	
+	/**
+	 * Internal function to print the result of an Insertion on the table Has
+	 * 
+	 * @param resultSet a ResultSet object returned from a query
+	 * @throws SQLException If the TableNames given in the query function points to the wrong table
+	 */
 	private void resultInsertHas(int resultSet) throws SQLException {
 		if(resultSet>0){
 			System.out.println("Inserted Data");
 		}
 	}
 	
+	/**
+	 * Internal function to print the result of an Insertion on the table Inventory
+	 * 
+	 * @param resultSet a ResultSet object returned from a query
+	 * @throws SQLException If the TableNames given in the query function points to the wrong table
+	 */
 	private void resultInsertInventory(int resultSet) throws SQLException {
 	    if(resultSet>0){
 	    	query("SELECT * FROM Inventory WHERE itemID = (SELECT MAX(itemID) FROM Inventory)", TableNames.INVENTORY);
 	    }
 	}
 	
+	/**
+	 * Internal function to print the result of an Insertion on the table Stores
+	 * 
+	 * @param resultSet a ResultSet object returned from a query
+	 * @throws SQLException If the TableNames given in the query function points to the wrong table
+	 */
 	private void resultInsertStores(int resultSet) throws SQLException {
 	    if(resultSet>0){
 	    	query("SELECT * FROM Stores WHERE locationNum = (SELECT MAX(locationNum) FROM Stores)", TableNames.STORES);
 	    }
 	}
 	
+	/*
+	 * Internal function to print the result of an Insertion on the table Transactions
+	 * 
+	 * @param resultSet a ResultSet object returned from a query
+	 * @throws SQLException If the TableNames given in the query function points to the wrong table
+	 */
 	private void resultInsertTransactions(int resultSet) throws SQLException {
 	    if(resultSet>0){
 	    	query("SELECT * FROM Transactions WHERE transactionID = (SELECT MAX(transactionID) FROM Transactions)", TableNames.TRANSACTIONS);
 	    }
 	}
 	
-	//MODIFICATIONS***************************************************************************************************************************
-	private void resultModifyContain(int resultSet) throws SQLException {
-		if(resultSet>0){
-			System.out.println(resultSet + " rows deleted");
-		}
-		else System.out.println("Nothing Deleted in Table.");
-	}
 	
+	//Begin MODIFICATIONS***************************************************************************************************************************
+	
+	/**
+	 * Function to print the result of a modification on a tuple in table Customers.  Only send values that are changed.  Any value that is not changed should be passed as null
+	 * 
+	 * @param customerID	The given customer's ID.  Must not be null
+	 * @param name			The customer's name.  If null, it remains unchanged.
+	 * @param phone			The customer's phone number.  If null, it remains unchanged.
+	 * @param address		The customer's address.  If null, it remains unchanged.
+	 * @param email			The customer's email. If null, it remains unchanged.
+	 * @param discount		The customer's discount.  If null, it remains unchanged.
+	 * @throws SQLException If the TableNames given in the query function points to the wrong table
+	 */
 	public void modifyCustomers(String customerID,String name, String phone, String address, String email, String discount) throws SQLException {
 		ResultSet result = getData("SELECT * FROM Customers WHERE customerID = '" + customerID + '\'');
 		
@@ -532,6 +680,19 @@ public class DBConnection {
 		else System.out.println("No rows changed");
 	}
 	
+	/**
+	 * Function to print the result of a modification on a tuple in table Employees.  
+	 * Only send values that are changed.  Any value that is not changed should be passed as null, other than the employeeID.
+	 * The employeeID must not be null.
+	 * 
+	 * @param employeeID	The given employee's ID.  Must not be null
+	 * @param ssn			The employee's social security number.  If null, it remains unchanged.
+	 * @param phone			The employee's name.  If null, it remains unchanged.
+	 * @param address		The employee's rank.  If null, it remains unchanged.
+	 * @param email			The employee's wage. If null, it remains unchanged.
+	 * @param discount		The employee's location number.  If null, it remains unchanged.
+	 * @throws SQLException If the TableNames given in the query function points to the wrong table
+	 */
 	public void modifyEmployees(String employeeID,String ssn, String name, String rank, String wage, String locationNum) throws SQLException {
 		ResultSet result = getData("SELECT * FROM Employees WHERE employeeID = '" + employeeID + '\'');
 		
@@ -590,6 +751,17 @@ public class DBConnection {
 		else System.out.println("No rows changed");
 	}
 	
+	/**
+	 * Function to print the result of a modification on a tuple in table Inventory.  
+	 * Only send values that are changed.  Any value that is not changed should be passed as null, other than the itemID.
+	 * The itemID must not be null.
+	 * 
+	 * @param itemID		The given item's ID.  Must not be null
+	 * @param name			The item's name.  If null, it remains unchanged.
+	 * @param type			The item's type.  If null, it remains unchanged.
+	 * @param price			The item's price.  If null, it remains unchanged.
+	 * @throws SQLException If the TableNames given in the query function points to the wrong table
+	 */
 	public void modifyInventory(String itemID,String name, String type, String price) throws SQLException {
 		ResultSet result = getData("SELECT * FROM Inventory WHERE itemID = '" + itemID + '\'');
 		
@@ -626,6 +798,16 @@ public class DBConnection {
 		
 	}
 	
+	/**
+	 * Function to print the result of a modification on a tuple in table Stores.  
+	 * Only send values that are changed.  Any value that is not changed should be passed as null, other than the locationNum.
+	 * The itemID must not be null.
+	 * 
+	 * @param locationNum	The given store's ID.  Must not be null
+	 * @param address			The store's address.  If null, it remains unchanged.
+	 * @param manager			The store's general manager.  If null, it remains unchanged.
+	 * @throws SQLException If the TableNames given in the query function points to the wrong table
+	 */
 	public void modifyStore(String locationNum ,String address, String manager) throws SQLException {
 		ResultSet result = getData("SELECT * FROM Stores WHERE locationNum = '" + locationNum + '\'');
 		
@@ -657,6 +839,17 @@ public class DBConnection {
 		
 	}
 	
+	/**
+	 * Function to print the result of a modification on a tuple in table Transactions.  
+	 * Only send values that are changed.  Any value that is not changed should be passed as null, other than the transactionID.
+	 * The transactionID must not be null.
+	 * 
+	 * @param transactionID	The given transaction's ID.  Must not be null
+	 * @param total			The total cost of the transaction.  If null, it remains unchanged.
+	 * @param customerID	The Id of the customer involved in the transaction.  If null, it remains unchanged.
+	 * @param locationNum	The store location number where the transaction occurred.
+	 * @throws SQLException If the TableNames given in the query function points to the wrong table
+	 */
 	public void modifyTransaction(String transactionID,String total, String customerID, String locationNum) throws SQLException {
 		ResultSet result = getData("SELECT * FROM Transactions WHERE transactionID = '" + transactionID + '\'');
 		
@@ -695,7 +888,16 @@ public class DBConnection {
 		else System.out.println("No rows changed");
 		
 	}
-	//DELETIONS***************************************************************************************************************************
+	
+	
+	//Begin DELETIONS***************************************************************************************************************************
+	
+	/**
+	 * Prints out how many rows were deleted on a delete(query,tablename) call to the table Contain
+	 * 
+	 * @param resultSet		The number of rows that were affected by the delete call
+	 * @throws SQLException	If the tableName sent with the delete call was incorrect.
+	 */
 	private void resultDeleteContain(int resultSet) throws SQLException {
 		if(resultSet>0){
 			System.out.println(resultSet + " rows deleted");
@@ -703,6 +905,12 @@ public class DBConnection {
 		else System.out.println("Nothing Deleted in Table.");
 	}
 	
+	/**
+	 * Prints out how many rows were deleted on a delete(query,tablename) call to the table Customers
+	 * 
+	 * @param resultSet		The number of rows that were affected by the delete call
+	 * @throws SQLException	If the tableName sent with the delete call was incorrect.
+	 */
 	private void resultDeleteCustomers(int resultSet) throws SQLException {
 		if(resultSet>0){
 			System.out.println(resultSet + " rows deleted");
@@ -710,6 +918,12 @@ public class DBConnection {
 		else System.out.println("Nothing Deleted in Table.");
 	}
 	
+	/**
+	 * Prints out how many rows were deleted on a delete(query,tablename) call to the table Employees
+	 * 
+	 * @param resultSet		The number of rows that were affected by the delete call
+	 * @throws SQLException	If the tableName sent with the delete call was incorrect.
+	 */
 	private void resultDeleteEmployees(int resultSet) throws SQLException {
 		if(resultSet>0){
 			System.out.println(resultSet + " rows deleted");
@@ -717,6 +931,12 @@ public class DBConnection {
 		else System.out.println("Nothing Deleted in Table.");
 	}
 	
+	/**
+	 * Prints out how many rows were deleted on a delete(query,tablename) call to the table Has
+	 * 
+	 * @param resultSet		The number of rows that were affected by the delete call
+	 * @throws SQLException	If the tableName sent with the delete call was incorrect.
+	 */
 	private void resultDeleteHas(int resultSet) throws SQLException {
 		if(resultSet>0){
 			System.out.println(resultSet + " rows deleted");
@@ -724,6 +944,12 @@ public class DBConnection {
 		else System.out.println("Nothing Deleted in Table.");
 	}
 	
+	/**
+	 * Prints out how many rows were deleted on a delete(query,tablename) call to the table Inventory
+	 * 
+	 * @param resultSet		The number of rows that were affected by the delete call
+	 * @throws SQLException	If the tableName sent with the delete call was incorrect.
+	 */
 	private void resultDeleteInventory(int resultSet) throws SQLException {
 		if(resultSet>0){
 			System.out.println(resultSet + " rows deleted");
@@ -731,6 +957,12 @@ public class DBConnection {
 		else System.out.println("Nothing Deleted in Table.");
 	}
 	
+	/**
+	 * Prints out how many rows were deleted on a delete(query,tablename) call to the table Stores
+	 * 
+	 * @param resultSet		The number of rows that were affected by the delete call
+	 * @throws SQLException	If the tableName sent with the delete call was incorrect.
+	 */
 	private void resultDeleteStores(int resultSet) throws SQLException {
 		if(resultSet>0){
 			System.out.println(resultSet + " rows deleted");
@@ -738,6 +970,12 @@ public class DBConnection {
 		else System.out.println("Nothing Deleted in Table.");
 	}
 	
+	/**
+	 * Prints out how many rows were deleted on a delete(query,tablename) call to the table Transactions
+	 * 
+	 * @param resultSet		The number of rows that were affected by the delete call
+	 * @throws SQLException	If the tableName sent with the delete call was incorrect.
+	 */
 	private void resultDeleteTransactions(int resultSet) throws SQLException {
 		if(resultSet>0){
 			System.out.println(resultSet + " rows deleted");

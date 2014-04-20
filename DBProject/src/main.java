@@ -1,22 +1,29 @@
+/**
+ * File: main.java
+ * @author Michael Stombaugh
+ * @author Brian Holt
+ * Date: 04-20-2014
+ * 
+ * Handles all the menus for the project.  Giant nest of switch statements.
+ */
+
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 
 public class main {
+	/*
+	 * Enum to store what menu we are currently viewing.
+	 */
 	public enum MenuLevel{
 		MAIN(0), DATAAGGREGATE(1), DATASPECIFIC(2), DATAINSERT(3), DATAMODIFY(4), DATADELETE(5), 
 		CUSTOMERSEARCH(6), EMPLOYEESEARCH(7), STORESEARCH(8), INVENTORYSEARCH(9), TRANSACTIONSEARCH(10),
 		NORMALOPERATIONS(11);
-		private int value;
 		private MenuLevel(int val){
-				this.value = value;
 		}
 	}
 
@@ -32,10 +39,11 @@ public class main {
 		String username = cfgFile.next();
 		String password = cfgFile.next();
 		cfgFile.close();
+		//store username and password in an external file so we don't have it on gitHub
 		DBConnection con = new DBConnection("jdbc:mysql://db310.ckor58pfmu78.us-west-2.rds.amazonaws.com/electronicsdb?user="+username+"&password="+password);
-		//con.query("SELECT * FROM Customers", DBConnection.TableNames.CUSTOMERS);
-		int choice;
-		MenuLevel menu = MenuLevel.MAIN;
+		
+		int choice; //the integer used everywhere to determine the input from the user
+		MenuLevel menu = MenuLevel.MAIN;  //the menu we are currently in
 		while(true){
 			//main menu options
 			System.out.println("**********Main Menu**********");
@@ -65,7 +73,6 @@ public class main {
 					
 					choice = in.nextInt();
 					in.nextLine();
-				//while(menu == MenuLevel.DATAAGGREGATE){
 					switch(choice){
 					case 1:
 						menu=MenuLevel.CUSTOMERSEARCH;
@@ -1068,8 +1075,10 @@ public class main {
 				break;
 			case 7:
 				con.close();
+				in.close();
 				return;
 			default:
+				in.close();
 				return;
 			}
 		}
